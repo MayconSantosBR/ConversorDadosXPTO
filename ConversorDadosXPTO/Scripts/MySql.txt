@@ -11,7 +11,7 @@ USE `dados_xpto` ;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `dados_xpto`.`programa_social` (
   `idprograma_social` INT NOT NULL AUTO_INCREMENT,
-  `nome` VARCHAR(45) NULL,
+  `nome` VARCHAR(100) NULL,
   PRIMARY KEY (`idprograma_social`))
 ENGINE = InnoDB;
 
@@ -21,7 +21,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `dados_xpto`.`cidadao` (
   `idcidadao` INT NOT NULL AUTO_INCREMENT,
-  `nome` VARCHAR(45) NULL,
+  `nome` VARCHAR(100) NULL,
   `cpf` VARCHAR(11) NULL,
   PRIMARY KEY (`idcidadao`))
 ENGINE = InnoDB;
