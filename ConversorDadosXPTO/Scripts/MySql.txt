@@ -1,0 +1,75 @@
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+
+CREATE SCHEMA IF NOT EXISTS `dados_xpto` DEFAULT CHARACTER SET utf8 ;
+USE `dados_xpto` ;
+
+-- -----------------------------------------------------
+-- Table `dados_xpto`.`programa_social`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `dados_xpto`.`programa_social` (
+  `idprograma_social` INT NOT NULL AUTO_INCREMENT,
+  `nome` VARCHAR(45) NULL,
+  PRIMARY KEY (`idprograma_social`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `dados_xpto`.`cidadao`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `dados_xpto`.`cidadao` (
+  `idcidadao` INT NOT NULL AUTO_INCREMENT,
+  `nome` VARCHAR(45) NULL,
+  `cpf` VARCHAR(11) NULL,
+  PRIMARY KEY (`idcidadao`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `dados_xpto`.`uf_cidade`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `dados_xpto`.`uf_cidade` (
+  `iduf_cidade` INT NOT NULL AUTO_INCREMENT,
+  `uf` VARCHAR(2) NULL,
+  `cidade` VARCHAR(45) NULL,
+  PRIMARY KEY (`iduf_cidade`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `dados_xpto`.`dados`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `dados_xpto`.`dados` (
+  `iddados` INT NOT NULL AUTO_INCREMENT,
+  `iduf_cidade` INT NOT NULL,
+  `idcidadao` INT NOT NULL,
+  `idprograma_social` INT NOT NULL,
+  `mes_ano` VARCHAR(6) NULL,
+  `valor` DOUBLE NULL,
+  PRIMARY KEY (`iddados`),
+  INDEX `fk_dados_uf_cidade_idx` (`iduf_cidade` ASC) VISIBLE,
+  INDEX `fk_dados_cidadao1_idx` (`idcidadao` ASC) VISIBLE,
+  INDEX `fk_dados_programa_social1_idx` (`idprograma_social` ASC) VISIBLE,
+  CONSTRAINT `fk_dados_uf_cidade`
+    FOREIGN KEY (`iduf_cidade`)
+    REFERENCES `dados_xpto`.`uf_cidade` (`iduf_cidade`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_dados_cidadao1`
+    FOREIGN KEY (`idcidadao`)
+    REFERENCES `dados_xpto`.`cidadao` (`idcidadao`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_dados_programa_social1`
+    FOREIGN KEY (`idprograma_social`)
+    REFERENCES `dados_xpto`.`programa_social` (`idprograma_social`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
