@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ConversorDadosXPTO.Models
 {
-    public class GarantiaSafra
+    public class GarantiaSafra : ICommon
     {
         [Index(0)]
         public string Date { get; set; }
@@ -29,5 +29,8 @@ namespace ConversorDadosXPTO.Models
 
         [Index(6)]
         public double InstallmentValue { get; set; }
+
+        [Ignore]
+        public string Cpf { get; set; }
     }
 }

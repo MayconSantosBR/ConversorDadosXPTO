@@ -15,9 +15,8 @@ var db = config.GetConnectionString("MySql");
 
 var services = new ServiceCollection();
 services.AddScoped<IConfiguration>(c => { return config; });
-services.AddDbContext<DadosXptoContext>(
+services.AddDbContextFactory<DadosXptoContext>(
    options => options.UseMySql(db, ServerVersion.AutoDetect(db))
-       .EnableSensitiveDataLogging()
        .LogTo(Console.WriteLine)
        .EnableDetailedErrors()
        );

@@ -32,6 +32,11 @@ namespace ConversorDadosXPTO.Services
             return await _repository.AddAsync(entity);
         }
 
+        public async Task AddBatchAsync(IEnumerable<T> entities)
+        {
+            await _repository.AddBatchAsync(entities);
+        }
+
         public async Task UpdateAsync(T entity)
         {
             await _repository.UpdateAsync(entity);

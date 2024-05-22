@@ -1,6 +1,7 @@
 ﻿using ConversorDadosXPTO.Context;
 using ConversorDadosXPTO.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,13 +13,15 @@ namespace ConversorDadosXPTO.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
+        private readonly IDbContextFactory<DadosXptoContext> _contextFactory;
         private readonly DadosXptoContext _context;
         private readonly DbSet<T> _dbSet;
 
-        public GenericRepository(DadosXptoContext context)
+        public GenericRepository(IDbContextFactory<DadosXptoContext> dbContextFactory, DadosXptoContext context)
         {
+            _contextFactory = dbContextFactory;
             _context = context;
-            _dbSet = _context.Set<T>();
+            _dbSet = context.Set<T>();
         }
 
         public async Task<IEnumerable<T>> GetAllAsync()
@@ -28,14 +31,20 @@ namespace ConversorDadosXPTO.Repositories
 
         public async Task<T> GetByIdAsync(int id)
         {
-            return await _dbSet.FindAsync(id);
+            using var context = _contextFactory.CreateDbContext();
+            var dbSet = context.Set<T>();
+
+            return await dbSet.FindAsync(id);
         }
 
         public async Task<int> AddAsync(T entity)
         {
-            await _dbSet.AddAsync(entity);
-            await _context.SaveChangesAsync();
-            var entry = _context.Entry(entity);
+            using var context = _contextFactory.CreateDbContext();
+            var dbSet = context.Set<T>();
+
+            await dbSet.AddAsync(entity);
+            await context.SaveChangesAsync();
+            var entry = context.Entry(entity);
 
             switch (typeof(T).Name)
             {
@@ -50,6 +59,15 @@ namespace ConversorDadosXPTO.Repositories
                 default:
                     return 0;
             }
+        }
+
+        public async Task AddBatchAsync(IEnumerable<T> entities)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            var dbSet = context.Set<T>();
+
+            await dbSet.AddRangeAsync(entities);
+            await context.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(T entity)
@@ -71,7 +89,10 @@ namespace ConversorDadosXPTO.Repositories
 
         public async Task<IEnumerable<T>> FindByConditionAsync(Expression<Func<T, bool>> expression)
         {
-            return await _dbSet.Where(expression).ToListAsync();
+            using var context = _contextFactory.CreateDbContext();
+            var dbSet = context.Set<T>();
+
+            return await dbSet.Where(expression).ToListAsync();
         }
     }
 }

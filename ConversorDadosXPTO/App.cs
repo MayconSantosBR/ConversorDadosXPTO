@@ -56,117 +56,93 @@ namespace ConversorDadosXPTO
                 {
                     var seguroDefeso = TransformCsvToObjects<SeguroDefeso>(sheet);
 
-                    foreach (var item in seguroDefeso)
+                    await CreateCitiesAndPeople(seguroDefeso.ToList<ICommon>());
+
+                    await Parallel.ForEachAsync(seguroDefeso, new ParallelOptions() { MaxDegreeOfParallelism = 5 }, async (seguro, token) =>
                     {
-                        int cityId = 0;
-                        var city = await _ufCidadeContext.GetByIdAsync(item.CityCode);
-
-                        if (city == null)
-                        {
-                            UfCidade ufCidade = new UfCidade
-                            {
-                                IdufCidade = item.CityCode,
-                                Cidade = item.CityName,
-                                Uf = item.StateAcronym
-                            };
-
-                            cityId = await _ufCidadeContext.AddAsync(ufCidade);
-                        }
-                        else
-                        {
-                            cityId = city.IdufCidade;
-                        }
-
-                        int personId = 0;
-                        var person = await _cidadaoContext.FindByConditionAsync(x => x.Cpf == OnlyNumbers(item.Cpf));
-
-                        if (person == null || person.Count() == 0)
-                        {
-                            Cidadao cidadao = new Cidadao
-                            {
-                                Nome = item.Person,
-                                Cpf = OnlyNumbers(item.Cpf)
-                            };
-
-                            personId = await _cidadaoContext.AddAsync(cidadao);
-                        }
-                        else
-                        {
-                            personId = person.FirstOrDefault().Idcidadao;
-                        }
+                        var city = await _ufCidadeContext.GetByIdAsync(seguro.CityCode);
+                        var person = await _cidadaoContext.FindByConditionAsync(x => x.Cpf == seguro.Nis.ToString());
 
                         var dado = new Dado
                         {
                             IdprogramaSocial = fileId,
-                            Idcidadao = personId,
-                            IdufCidade = cityId,
-                            MesAno = item.Date,
-                            Valor = item.InstallmentValue
+                            Idcidadao = person.FirstOrDefault().Idcidadao,
+                            IdufCidade = city.IdufCidade,
+                            MesAno = seguro.Date,
+                            Valor = seguro.InstallmentValue
                         };
 
                         await _dadoContext.AddAsync(dado);
-                    }
+                    });
                 }
                 else if (fileName.ToLower().Contains("garantiasafra"))
                 {
                     var garantiaSafras = TransformCsvToObjects<GarantiaSafra>(sheet);
 
-                    foreach (var item in garantiaSafras)
+                    await CreateCitiesAndPeople(garantiaSafras.ToList<ICommon>());
+
+                    await Parallel.ForEachAsync(garantiaSafras, new ParallelOptions() { MaxDegreeOfParallelism = 5 }, async (safra, token) =>
                     {
-                        int cityId = 0;
-                        var city = await _ufCidadeContext.GetByIdAsync(item.CityCode);
-
-                        if (city == null)
-                        {
-                            UfCidade ufCidade = new UfCidade
-                            {
-                                IdufCidade = item.CityCode,
-                                Cidade = item.CityName,
-                                Uf = item.StateAcronym
-                            };
-
-                            cityId = await _ufCidadeContext.AddAsync(ufCidade);
-                        }
-                        else
-                        {
-                            cityId = city.IdufCidade;
-                        }
-
-                        int personId = 0;
-                        var person = await _cidadaoContext.FindByConditionAsync(x => x.Cpf == item.Nis.ToString());
-
-                        if (person == null || person.Count() == 0)
-                        {
-                            Cidadao cidadao = new Cidadao
-                            {
-                                Nome = item.Person,
-                                Cpf = item.Nis.ToString()
-                            };
-
-                            personId = await _cidadaoContext.AddAsync(cidadao);
-                        }
-                        else
-                        {
-                            personId = person.FirstOrDefault().Idcidadao;
-                        }
+                        var city = await _ufCidadeContext.GetByIdAsync(safra.CityCode);
+                        var person = await _cidadaoContext.FindByConditionAsync(x => x.Cpf == safra.Nis.ToString());
 
                         var dado = new Dado
                         {
                             IdprogramaSocial = fileId,
-                            Idcidadao = personId,
-                            IdufCidade = cityId,
-                            MesAno = item.Date,
-                            Valor = item.InstallmentValue
+                            Idcidadao = person.FirstOrDefault().Idcidadao,
+                            IdufCidade = city.IdufCidade,
+                            MesAno = safra.Date,
+                            Valor = safra.InstallmentValue
                         };
 
                         await _dadoContext.AddAsync(dado);
-                    }
+                    });
                 }
                 else
                 {
                     throw new Exception("Arquivo não reconhecido");
                 }
             }
+        }
+
+        private async Task CreateCitiesAndPeople(List<ICommon> information)
+        {
+            var cities = information.Select(c => new CidadeDto(c.CityCode, c.StateAcronym, c.CityName)).DistinctBy(c => c.Id).ToList();
+
+            await Parallel.ForEachAsync(cities, new ParallelOptions() { MaxDegreeOfParallelism = 5 }, async (city, token) =>
+            {
+                var cityInDatabase = await _ufCidadeContext.GetByIdAsync(city.Id);
+
+                if (cityInDatabase == null)
+                {
+                    UfCidade ufCidade = new UfCidade
+                    {
+                        IdufCidade = city.Id,
+                        Cidade = city.Nome,
+                        Uf = city.Uf
+                    };
+
+                    await _ufCidadeContext.AddAsync(ufCidade);
+                }
+            });
+
+            var people = information.Select(p => new CidadaoDto(0, p.Person, p.Nis)).DistinctBy(p => p.CpfOrNis).ToList();
+
+            await Parallel.ForEachAsync(people, new ParallelOptions() { MaxDegreeOfParallelism = 5 }, async (person, token) =>
+            {
+                var personInDatabase = await _cidadaoContext.FindByConditionAsync(x => x.Cpf == person.CpfOrNis);
+
+                if (personInDatabase == null || personInDatabase.Count() == 0)
+                {
+                    Cidadao cidadao = new Cidadao
+                    {
+                        Nome = person.Nome,
+                        Cpf = person.CpfOrNis
+                    };
+
+                    await _cidadaoContext.AddAsync(cidadao);
+                }
+            });
         }
 
         public static List<T> TransformCsvToObjects<T>(string csvFilePath)
@@ -177,16 +153,6 @@ namespace ConversorDadosXPTO
                 var records = csv.GetRecords<T>().ToList();
                 return records;
             }
-        }
-
-        public static string OnlyNumbers(string input)
-        {
-            if (input == null)
-            {
-                throw new ArgumentNullException(nameof(input));
-            }
-
-            return new string(input.Where(char.IsDigit).ToArray());
         }
 
         public void Dispose() => GC.SuppressFinalize(this);

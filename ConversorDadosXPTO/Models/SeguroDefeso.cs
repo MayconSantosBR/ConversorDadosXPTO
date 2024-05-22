@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ConversorDadosXPTO.Models
 {
-    public class SeguroDefeso
+    public class SeguroDefeso : ICommon
     {
         [Index(0)]
         public string Date { get; set; }
