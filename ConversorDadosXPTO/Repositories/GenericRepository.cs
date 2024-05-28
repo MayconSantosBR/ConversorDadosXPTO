@@ -1,5 +1,6 @@
 ﻿using ConversorDadosXPTO.Context;
 using ConversorDadosXPTO.Models;
+using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using System;
@@ -63,11 +64,26 @@ namespace ConversorDadosXPTO.Repositories
 
         public async Task AddBatchAsync(IEnumerable<T> entities)
         {
-            using var context = _contextFactory.CreateDbContext();
-            var dbSet = context.Set<T>();
+            switch (typeof(T).Name)
+            {
+                case "Dado":
+                    await _context.BulkInsertOrUpdateAsync(entities, new BulkConfig()
+                    {
+                        PropertiesToIncludeOnCompare = ["IdufCidade", "Idcidadao", "IdprogramaSocial", "MesAno"]
+                    });
+                    break;
+                case "Cidadao":
+                    await _context.BulkInsertOrUpdateAsync(entities, new BulkConfig() 
+                    {
+                        PropertiesToIncludeOnCompare = ["Cpf"] 
+                    });
+                    break;
+                default:
+                    await _context.BulkInsertOrUpdateAsync(entities);
+                    break;
+            }
 
-            await dbSet.AddRangeAsync(entities);
-            await context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(T entity)
@@ -92,7 +108,7 @@ namespace ConversorDadosXPTO.Repositories
             using var context = _contextFactory.CreateDbContext();
             var dbSet = context.Set<T>();
 
-            return await dbSet.Where(expression).ToListAsync();
+            return await dbSet.Where(expression).AsNoTracking().ToListAsync();
         }
     }
 }

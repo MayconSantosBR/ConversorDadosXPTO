@@ -16,10 +16,7 @@ var db = config.GetConnectionString("MySql");
 var services = new ServiceCollection();
 services.AddScoped<IConfiguration>(c => { return config; });
 services.AddDbContextFactory<DadosXptoContext>(
-   options => options.UseMySql(db, ServerVersion.AutoDetect(db))
-       .LogTo(Console.WriteLine)
-       .EnableDetailedErrors()
-       );
+   options => options.UseMySql(db, ServerVersion.AutoDetect(db)));
 
 services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 services.AddScoped(typeof(IEntityService<>), typeof(EntityService<>));
