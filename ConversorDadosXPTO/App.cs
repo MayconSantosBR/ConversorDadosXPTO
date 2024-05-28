@@ -43,14 +43,25 @@ namespace ConversorDadosXPTO
 
             foreach (var sheet in sheets)
             {
+                int fileId = 0;
                 var fileName = Path.GetFileName(sheet);
 
-                ProgramaSocial programaSocial = new ProgramaSocial
-                {
-                    Nome = fileName
-                };
+                var file = await _programaSocialContext.FindByConditionAsync(x => x.Nome == fileName);
 
-                var fileId = await _programaSocialContext.AddAsync(programaSocial);
+                if (file.Any())
+                {
+                    await Console.Out.WriteLineAsync($"Arquivo {fileName} já foi importado, iremos atualizar.");
+                    fileId = file.FirstOrDefault().IdprogramaSocial;
+                }
+                else
+                {
+                    ProgramaSocial programaSocial = new ProgramaSocial
+                    {
+                        Nome = fileName
+                    };
+
+                    fileId = await _programaSocialContext.AddAsync(programaSocial);
+                }
 
                 if (fileName.ToLower().Contains("segurodefeso"))
                 {
@@ -60,7 +71,7 @@ namespace ConversorDadosXPTO
 
                     List<Dado> dados = [];
 
-                    await Parallel.ForEachAsync(seguroDefeso, new ParallelOptions() { MaxDegreeOfParallelism = 5 }, async (seguro, token) =>
+                    await Parallel.ForEachAsync(seguroDefeso, new ParallelOptions() { MaxDegreeOfParallelism = 3 }, async (seguro, token) =>
                     {
                         var city = await _ufCidadeContext.FindByConditionAsync(x => x.IdufCidade == seguro.CityCode);
                         var person = await _cidadaoContext.FindByConditionAsync(x => x.Cpf == seguro.Nis.ToString());

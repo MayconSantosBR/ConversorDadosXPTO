@@ -25,9 +25,6 @@ public partial class DadosXptoContext : DbContext
 
     public virtual DbSet<UfCidade> UfCidades { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseMySql("server=localhost;port=3306;database=dados_xpto;user=admin;password=admin", ServerVersion.Parse("8.4.0-mysql"));
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder

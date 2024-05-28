@@ -7,12 +7,11 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: admin
       MYSQL_DATABASE: dados_xpto
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: admin
     ports:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+      - ./my.cnf:/etc/mysql/conf.d/my.cnf
 
 volumes:
   db_data:
