@@ -9,7 +9,7 @@ public partial class Dado
 
     public int IdufCidade { get; set; }
 
-    public int Idcidadao { get; set; }
+    public long Idcidadao { get; set; }
 
     public int IdprogramaSocial { get; set; }
 

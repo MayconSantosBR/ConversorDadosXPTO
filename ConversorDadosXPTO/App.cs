@@ -69,26 +69,16 @@ namespace ConversorDadosXPTO
 
                     await CreateCitiesAndPeople(seguroDefeso.ToList<ICommon>());
 
-                    List<Dado> dados = [];
-
-                    await Parallel.ForEachAsync(seguroDefeso, new ParallelOptions() { MaxDegreeOfParallelism = 3 }, async (seguro, token) =>
-                    {
-                        var city = await _ufCidadeContext.FindByConditionAsync(x => x.IdufCidade == seguro.CityCode);
-                        var person = await _cidadaoContext.FindByConditionAsync(x => x.Cpf == seguro.Nis.ToString());
-
-                        var dado = new Dado
+                    var dados = seguroDefeso.Select(seguroDefeso =>
+                        new Dado()
                         {
                             IdprogramaSocial = fileId,
-                            Idcidadao = person.FirstOrDefault().Idcidadao,
-                            IdufCidade = city.FirstOrDefault().IdufCidade,
-                            MesAno = seguro.Date,
-                            Valor = seguro.InstallmentValue
-                        };
-
-                        dados.Add(dado);
-
-                        await Console.Out.WriteLineAsync($"Registro para {seguro.Nis} adicionado a lista de importação.");
-                    });
+                            Idcidadao = long.Parse(seguroDefeso.Nis),
+                            IdufCidade = seguroDefeso.CityCode,
+                            MesAno = seguroDefeso.Date,
+                            Valor = seguroDefeso.InstallmentValue,
+                        }
+                    );
 
                     await _dadoContext.AddBatchAsync(dados);
 
@@ -100,26 +90,16 @@ namespace ConversorDadosXPTO
 
                     await CreateCitiesAndPeople(garantiaSafras.ToList<ICommon>());
 
-                    List<Dado> dados = [];
-
-                    await Parallel.ForEachAsync(garantiaSafras, new ParallelOptions() { MaxDegreeOfParallelism = 5 }, async (safra, token) =>
-                    {
-                        var city = await _ufCidadeContext.FindByConditionAsync(x => x.IdufCidade == safra.CityCode);
-                        var person = await _cidadaoContext.FindByConditionAsync(x => x.Cpf == safra.Nis.ToString());
-
-                        var dado = new Dado
+                    List<Dado> dados = garantiaSafras.Select(garantiaSafra =>
+                        new Dado()
                         {
                             IdprogramaSocial = fileId,
-                            Idcidadao = person.FirstOrDefault().Idcidadao,
-                            IdufCidade = city.FirstOrDefault().IdufCidade,
-                            MesAno = safra.Date,
-                            Valor = safra.InstallmentValue
-                        };
-
-                        dados.Add(dado);
-
-                        await Console.Out.WriteLineAsync($"Registro para {safra.Nis} adicionado a lista de importação.");
-                    });
+                            Idcidadao = long.Parse(garantiaSafra.Nis),
+                            IdufCidade = garantiaSafra.CityCode,
+                            MesAno = garantiaSafra.Date,
+                            Valor = garantiaSafra.InstallmentValue,
+                        }
+                    ).ToList();
 
                     await _dadoContext.AddBatchAsync(dados);
 

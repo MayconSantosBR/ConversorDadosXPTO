@@ -20,7 +20,7 @@ ENGINE = InnoDB;
 -- Table `dados_xpto`.`cidadao`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `dados_xpto`.`cidadao` (
-  `idcidadao` INT NOT NULL AUTO_INCREMENT,
+  `idcidadao` BIGINT NOT NULL AUTO_INCREMENT,
   `nome` VARCHAR(100) NULL,
   `cpf` VARCHAR(11) NULL,
   PRIMARY KEY (`idcidadao`))
@@ -44,7 +44,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `dados_xpto`.`dados` (
   `iddados` INT NOT NULL AUTO_INCREMENT,
   `iduf_cidade` INT NOT NULL,
-  `idcidadao` INT NOT NULL,
+  `idcidadao` BIGINT NOT NULL,
   `idprograma_social` INT NOT NULL,
   `mes_ano` VARCHAR(6) NULL,
   `valor` DOUBLE NULL,
@@ -68,6 +68,22 @@ CREATE TABLE IF NOT EXISTS `dados_xpto`.`dados` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
+
+DELIMITER //
+
+CREATE TRIGGER before_insert_dados_trigger BEFORE INSERT ON dados_xpto.dados
+FOR EACH ROW
+BEGIN
+    DECLARE new_cidadao_id BIGINT;
+
+    -- Query cidadao table to get the corresponding idcidadao value
+    SELECT idcidadao INTO new_cidadao_id FROM cidadao WHERE cpf = NEW.idcidadao LIMIT 1;
+
+    -- Set the new value for idcidadao
+    SET NEW.idcidadao = new_cidadao_id;
+END //
+
+DELIMITER ;
 
 
 SET SQL_MODE=@OLD_SQL_MODE;

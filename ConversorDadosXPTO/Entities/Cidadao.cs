@@ -5,7 +5,7 @@ namespace ConversorDadosXPTO.Models;
 
 public partial class Cidadao
 {
-    public int Idcidadao { get; set; }
+    public long Idcidadao { get; set; }
 
     public string? Nome { get; set; }
 
