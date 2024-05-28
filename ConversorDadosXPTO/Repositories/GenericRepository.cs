@@ -64,25 +64,7 @@ namespace ConversorDadosXPTO.Repositories
 
         public async Task AddBatchAsync(IEnumerable<T> entities)
         {
-            switch (typeof(T).Name)
-            {
-                case "Dado":
-                    await _context.BulkInsertOrUpdateAsync(entities, new BulkConfig()
-                    {
-                        PropertiesToIncludeOnCompare = ["IdufCidade", "Idcidadao", "IdprogramaSocial", "MesAno"]
-                    });
-                    break;
-                case "Cidadao":
-                    await _context.BulkInsertOrUpdateAsync(entities, new BulkConfig() 
-                    {
-                        PropertiesToIncludeOnCompare = ["Cpf"] 
-                    });
-                    break;
-                default:
-                    await _context.BulkInsertOrUpdateAsync(entities);
-                    break;
-            }
-
+            await _context.BulkInsertOrUpdateAsync(entities);
             await _context.SaveChangesAsync();
         }
 

@@ -69,23 +69,6 @@ CREATE TABLE IF NOT EXISTS `dados_xpto`.`dados` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-DELIMITER //
-
-CREATE TRIGGER before_insert_dados_trigger BEFORE INSERT ON dados_xpto.dados
-FOR EACH ROW
-BEGIN
-    DECLARE new_cidadao_id BIGINT;
-
-    -- Query cidadao table to get the corresponding idcidadao value
-    SELECT idcidadao INTO new_cidadao_id FROM cidadao WHERE cpf = NEW.idcidadao LIMIT 1;
-
-    -- Set the new value for idcidadao
-    SET NEW.idcidadao = new_cidadao_id;
-END //
-
-DELIMITER ;
-
-
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

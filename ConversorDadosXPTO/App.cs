@@ -1,6 +1,7 @@
 ﻿using ConversorDadosXPTO.Context;
 using ConversorDadosXPTO.Models;
 using ConversorDadosXPTO.Services;
+using ConversorDadosXPTO.Utils;
 using CsvHelper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,9 +38,8 @@ namespace ConversorDadosXPTO
         {
             string exePath = Assembly.GetExecutingAssembly().Location;
             string exeDirectory = Path.GetDirectoryName(exePath);
-            string solutionDirectory = Directory.GetParent(exeDirectory).Parent.Parent.FullName;
 
-            var sheets = Directory.GetFiles(solutionDirectory, "*.csv", SearchOption.AllDirectories);
+            var sheets = Directory.GetFiles(exeDirectory, "*.csv", SearchOption.AllDirectories);
 
             foreach (var sheet in sheets)
             {
@@ -69,7 +69,7 @@ namespace ConversorDadosXPTO
 
                     await CreateCitiesAndPeople(seguroDefeso.ToList<ICommon>());
 
-                    var dados = seguroDefeso.Select(seguroDefeso =>
+                    List<Dado> dados = seguroDefeso.Select(seguroDefeso =>
                         new Dado()
                         {
                             IdprogramaSocial = fileId,
@@ -78,7 +78,7 @@ namespace ConversorDadosXPTO
                             MesAno = seguroDefeso.Date,
                             Valor = seguroDefeso.InstallmentValue,
                         }
-                    );
+                    ).ToList();
 
                     await _dadoContext.AddBatchAsync(dados);
 
@@ -118,7 +118,7 @@ namespace ConversorDadosXPTO
             await _ufCidadeContext.AddBatchAsync(cities);
             await Console.Out.WriteLineAsync("Cidades criadas e atualizadas!");
 
-            var people = information.Select(p => new Cidadao() { Nome = p.Person, Cpf = p.Nis }).DistinctBy(p => p.Cpf).ToList();
+            var people = information.Select(p => new Cidadao() { Idcidadao = long.Parse(p.Nis), Nome = p.Person, Cpf = p.Nis }).DistinctBy(p => p.Cpf).ToList();
             await _cidadaoContext.AddBatchAsync(people);
             await Console.Out.WriteLineAsync("Pessoas criadas e atualizadas!");
         }
